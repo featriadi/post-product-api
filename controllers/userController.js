@@ -1,0 +1,150 @@
+require('dotenv').config()
+const jwt = require('jsonwebtoken')
+const bcrypt = require('bcrypt')
+const Validator = require("fastest-validator")
+const v = new Validator()
+
+const User = require('../models/User')
+
+async function register(req, res) {
+    try {
+        const schema = {
+            name: 'string|empty:false',
+            email: 'email|empty:false',
+            password: 'string|min:6|empty:false',
+        }
+        const validate = v.validate(req.body, schema)
+
+        if (validate.length) {
+            return res.status(400).json({
+                status: 'error',
+                message: validate
+            })
+        }
+
+        const user = await User.findOne({
+            where: { email: req.body.email }
+        })
+
+        if (user) {
+            return res.status(409).json({
+                status: 'error',
+                message: 'email already exists'
+            })
+        }
+
+        const password = await bcrypt.hash(req.body.password, 10)
+
+        const data = {
+            name: req.body.name,
+            email: req.body.email,
+            password: password,
+        }
+
+        const createUser = await User.create(data)
+
+        return res.status(201).json({
+            status: 'success',
+            data: {
+                id: createUser.id
+            },
+        })
+    } catch (error) {
+        return res.status(404).json({
+            status: 'error',
+            message: error.message,
+        })
+    }
+}
+
+async function login(req, res) {
+    try {
+        const schema = {
+            email: 'email|empty:false',
+            password: 'string|min:6|empty:false',
+        }
+        const validate = v.validate(req.body, schema)
+
+        if (validate.length) {
+            return res.status(400).json({
+                status: 'error',
+                message: validate
+            })
+        }
+
+        const user = await User.findOne({
+            where: { email: req.body.email }
+        })
+
+        if(!user){
+            return res.status(401).json({
+                status: 'error',
+                message: 'email address is not exists'
+            })
+        }
+
+        const accessToken = jwt.sign({ data: user }, process.env.JWT_SECRET_ACCESS_TOKEN, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRED })
+        const refreshToken = jwt.sign({ data: user }, process.env.JWT_SECRET_REFRESH_TOKEN, { expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRED })
+
+        return res.status(201).json({
+            status: 'success',
+            data: {
+                "user": user,
+                "accessToken": accessToken,
+                "refreshToken": refreshToken,
+            },
+        })
+    } catch (error) {
+        return res.status(404).json({
+            status: 'error',
+            message: error.message,
+        })
+    }
+}
+
+async function refreshToken(req, res) {
+    try {
+        const email = req.body.email
+        const refreshToken = req.body.refresh_token
+
+        if(!refreshToken || !email) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'invalid token'
+            })
+        }
+
+        jwt.verify(refreshToken, process.env.JWT_SECRET_REFRESH_TOKEN, (err, decoded) => {
+            if(err){
+                return res.status(403).json({
+                    status: 'error',
+                    message: err.message
+                })
+            }
+
+            if(email != decoded.data.email){
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'email address is not valid'
+                })
+            }
+
+            const accessToken = jwt.sign({ data: decoded.data }, process.env.JWT_SECRET_ACCESS_TOKEN, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRED })
+    
+            return res.status(201).json({
+                status: 'success',
+                data: {
+                    "accessToken": accessToken,
+                },
+            })
+        })
+
+    } catch (error) {
+        return res.status(404).json({
+            status: 'error',
+            message: error.message,
+        })
+    }
+}
+
+module.exports = { register, login, refreshToken }
