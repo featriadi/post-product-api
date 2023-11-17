@@ -8,16 +8,14 @@ const port = process.env.PORT || 3000
 app.use(express.json())
 app.use(cors())
 
-// Database
-const { connection } = require('./config/connection')
-connection()
-
 // Routes
 const userRoutes = require('./routes/userRoute')
 const postRoutes = require('./routes/postRoute')
+const productRoute = require('./routes/productRoute')
 
 app.use('/api/v1', userRoutes)
 app.use('/api/v1', postRoutes)
+app.use('/api/v1', productRoute)
 
 app.listen(port, () => {
     console.log(`Example app listening on port ${port}`)

@@ -4,7 +4,7 @@ const bcrypt = require('bcrypt')
 const Validator = require("fastest-validator")
 const v = new Validator()
 
-const User = require('../models/User')
+const User = require('../models').User
 
 async function register(req, res) {
     try {
@@ -15,7 +15,7 @@ async function register(req, res) {
         }
         const validate = v.validate(req.body, schema)
 
-        if (validate.length) {
+        if(validate.length) {
             return res.status(400).json({
                 status: 'error',
                 message: validate
@@ -26,10 +26,10 @@ async function register(req, res) {
             where: { email: req.body.email }
         })
 
-        if (user) {
+        if(user) {
             return res.status(409).json({
                 status: 'error',
-                message: 'email already exists'
+                message: 'Email already exists'
             })
         }
 
@@ -44,13 +44,13 @@ async function register(req, res) {
         const createUser = await User.create(data)
 
         return res.status(201).json({
-            status: 'success',
+            message: 'User successfully created',
             data: {
                 id: createUser.id
             },
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -65,7 +65,7 @@ async function login(req, res) {
         }
         const validate = v.validate(req.body, schema)
 
-        if (validate.length) {
+        if(validate.length) {
             return res.status(400).json({
                 status: 'error',
                 message: validate
@@ -76,10 +76,19 @@ async function login(req, res) {
             where: { email: req.body.email }
         })
 
-        if(!user){
-            return res.status(401).json({
+        if(!user) {
+            return res.status(404).json({
                 status: 'error',
-                message: 'email address is not exists'
+                message: 'Email is not exists'
+            })
+        }
+
+        const isValidPassword = await bcrypt.compare(req.body.password, user.password)
+
+        if(!isValidPassword){
+            return res.status(400).json({
+                status: 'error',
+                message: 'Password incorrect'
             })
         }
 
@@ -87,7 +96,7 @@ async function login(req, res) {
         const refreshToken = jwt.sign({ data: user }, process.env.JWT_SECRET_REFRESH_TOKEN, { expiresIn: process.env.JWT_REFRESH_TOKEN_EXPIRED })
 
         return res.status(201).json({
-            status: 'success',
+            message: 'Access token and refresh token generated',
             data: {
                 "user": user,
                 "accessToken": accessToken,
@@ -95,7 +104,7 @@ async function login(req, res) {
             },
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -110,29 +119,29 @@ async function refreshToken(req, res) {
         if(!refreshToken || !email) {
             return res.status(400).json({
                 status: 'error',
-                message: 'invalid token'
+                message: 'Invalid token'
             })
         }
 
         jwt.verify(refreshToken, process.env.JWT_SECRET_REFRESH_TOKEN, (err, decoded) => {
-            if(err){
+            if(err) {
                 return res.status(403).json({
                     status: 'error',
                     message: err.message
                 })
             }
 
-            if(email != decoded.data.email){
+            if(email != decoded.data.email) {
                 return res.status(400).json({
                     status: 'error',
-                    message: 'email address is not valid'
+                    message: 'Email is not valid'
                 })
             }
 
             const accessToken = jwt.sign({ data: decoded.data }, process.env.JWT_SECRET_ACCESS_TOKEN, { expiresIn: process.env.JWT_ACCESS_TOKEN_EXPIRED })
     
-            return res.status(201).json({
-                status: 'success',
+            return res.status(200).json({
+                message: 'Access token generated',
                 data: {
                     "accessToken": accessToken,
                 },
@@ -140,11 +149,15 @@ async function refreshToken(req, res) {
         })
 
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
     }
 }
 
-module.exports = { register, login, refreshToken }
+module.exports = {
+    register,
+    login,
+    refreshToken
+}

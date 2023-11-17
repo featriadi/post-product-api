@@ -2,16 +2,22 @@ require('dotenv').config()
 const Validator = require("fastest-validator")
 const v = new Validator()
 
+const Product = require('../models').Product
+
 async function getProducts(req, res) {
     try {
+        const products = await Product.findAll({
+            where: { deletedAt: null },
+            attributes: ['id', 'product_name', 'description', 'price'],
+            order: [['id', 'ASC' ]]
+        })
+
         return res.status(200).json({
-            status: 'success',
-            data: {
-                Products: 'ok'
-            }
+            message: 'Data successfully retrieved',
+            data: products
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -20,14 +26,25 @@ async function getProducts(req, res) {
 
 async function getProductById(req, res) {
     try {
+        const id = req.params.id
+        const product = await Product.findOne({
+            where: { id },
+            attributes: ['id', 'product_name', 'description', 'price'],
+        })
+
+        if(!product) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Data not found'
+            })
+        }
+
         return res.status(200).json({
-            status: 'success',
-            data: {
-                Products: 'ok'
-            }
+            message: 'Data successfully retrieved',
+            data: product
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -57,16 +74,19 @@ async function createProduct(req, res) {
             price: req.body.price,
         }
 
-        const createProduct = null // create new post record
+        const createProduct = await Product.create(data)
 
-        return res.status(200).json({
-            status: 'success',
+        return res.status(201).json({
+            message: 'Data successfully created',
             data: {
-                Products: 'ok'
+                id: createProduct.id,
+                product_name: createProduct.productName,
+                description: createProduct.description,
+                price: createProduct.price,
             }
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -90,14 +110,12 @@ async function updateProduct(req, res) {
             })
         }
 
-        const id = req.params.id
-
-        const product = true // get product record
+        const product = await Product.findByPk(req.params.id)
 
         if(!product) {
             return res.status(404).json({
                 status: 'error',
-                message: 'product record not found',
+                message: 'Data not found',
             })
         }
 
@@ -107,16 +125,25 @@ async function updateProduct(req, res) {
             price,
         } = req.body
 
-        // update product record
+        await product.update({
+            productName: product_name,
+            description,
+            price,
+            updatedAt: Date.now(),
+        })
 
         return res.status(200).json({
-            status: 'success',
+            message: 'Data successfully updated',
             data: {
-                Products: 'ok'
+                id: product.id,
+                product_name: product.productName,
+                description,
+                price,
+                updated_at: product.updatedAt
             }
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -125,27 +152,35 @@ async function updateProduct(req, res) {
 
 async function softDeleteProduct(req, res) {
     try {
-        const id = req.params.id
-
-        const product = true
+        const product = await Product.findByPk(req.params.id)
 
         if(!product) {
             return res.status(404).json({
                 status: 'error',
-                message: 'product record not found',
+                message: 'Data not found',
             })
         }
 
-        // update product record deleted_at to date now()
+        if(product.deletedAt !== null) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Data already deleted',
+            })
+        }
+
+        await product.update({
+            deletedAt: Date.now()
+        })
 
         return res.status(200).json({
-            status: 'success',
+            message: 'Data successfully deleted',
             data: {
-                Products: 'ok'
+                id: product.id,
+                deleted_at: product.deletedAt,
             }
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -153,7 +188,7 @@ async function softDeleteProduct(req, res) {
 }
 
 module.exports = {
-    getProducts, 
+    getProducts,
     getProductById,
     createProduct,
     updateProduct,

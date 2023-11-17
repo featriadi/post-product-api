@@ -2,18 +2,22 @@ require('dotenv').config()
 const Validator = require("fastest-validator")
 const v = new Validator()
 
-const Post = require('../models/Post')
+const Post = require('../models').Post
 
 async function getPosts(req, res) {
     try {
+        const posts = await Post.findAll({
+            where: { deletedAt: null },
+            attributes: ['id', 'title', 'description'],
+            order: [['id', 'ASC' ]]
+        })
+
         return res.status(200).json({
-            status: 'success',
-            data: {
-                posts: 'ok'
-            }
+            message: 'Data successfully retrieved',
+            data: posts
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -22,14 +26,25 @@ async function getPosts(req, res) {
 
 async function getPostById(req, res) {
     try {
+        const id = req.params.id
+        const post = await Post.findOne({
+            where: { id },
+            attributes: ['id', 'title', 'description'],
+        })
+
+        if(!post) {
+            return res.status(404).json({
+                status: 'error',
+                message: 'Data not found'
+            })
+        }
+
         return res.status(200).json({
-            status: 'success',
-            data: {
-                posts: 'ok'
-            }
+            status: 'Data successfully retrieved',
+            data: post
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -57,16 +72,18 @@ async function createPost(req, res) {
             description: req.body.description,
         }
 
-        const createPost = null // create new post record
+        const createPost = await Post.create(data)
 
-        return res.status(200).json({
-            status: 'success',
+        return res.status(201).json({
+            message: 'Data successfully created',
             data: {
-                posts: 'ok'
+                id: createPost.id,
+                title: createPost.title,
+                description: createPost.description
             }
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -89,14 +106,12 @@ async function updatePost(req, res) {
             })
         }
 
-        const id = req.params.id
-
-        const post = true // get post record
+        const post = await Post.findByPk(req.params.id)
 
         if(!post) {
             return res.status(404).json({
                 status: 'error',
-                message: 'post record not found',
+                message: 'Data not found',
             })
         }
 
@@ -105,16 +120,23 @@ async function updatePost(req, res) {
             description,
         } = req.body
 
-        // update post record
+        await post.update({
+            title,
+            description,
+            updatedAt: Date.now(),
+        })
 
         return res.status(200).json({
-            status: 'success',
+            message: 'Data successfully updated',
             data: {
-                posts: 'ok'
+                id: post.id,
+                title,
+                description,
+                updated_at: post.updatedAt
             }
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
@@ -123,35 +145,43 @@ async function updatePost(req, res) {
 
 async function softDeletePost(req, res) {
     try {
-        const id = req.params.id
-
-        const post = true // get post record
+        const post = await Post.findByPk(req.params.id)
 
         if(!post) {
             return res.status(404).json({
                 status: 'error',
-                message: 'post record not found',
+                message: 'Data not found',
             })
         }
 
-        // update post record deleted_at to date now()
+        if(post.deletedAt !== null) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Data already deleted',
+            })
+        }
+
+        await post.update({
+            deletedAt: Date.now()
+        })
 
         return res.status(200).json({
-            status: 'success',
+            message: 'Data successfully deleted',
             data: {
-                posts: 'ok'
+                id: post.id,
+                deleted_at: post.deletedAt,
             }
         })
     } catch (error) {
-        return res.status(404).json({
+        return res.status(400).json({
             status: 'error',
             message: error.message,
         })
     }
 }
 
-module.exports = { 
-    getPosts, 
+module.exports = {
+    getPosts,
     getPostById,
     createPost,
     updatePost,
