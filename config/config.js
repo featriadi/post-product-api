@@ -13,7 +13,8 @@ module.exports = {
         username: DATABASE_USERNAME,
         password: DATABASE_PASSWORD,
         database: DATABASE_NAME,
-        dialect: "postgres",
-        logging: false
+        dialect: 'postgres',
+        sslmode: 'require',
+        logging: false,
     }
 }
