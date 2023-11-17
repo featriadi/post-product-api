@@ -2,14 +2,12 @@ require('dotenv').config()
 const Validator = require("fastest-validator")
 const v = new Validator()
 
-const Post = require('../models/Post')
-
-async function getPosts(req, res) {
+async function getProducts(req, res) {
     try {
         return res.status(200).json({
             status: 'success',
             data: {
-                posts: 'ok'
+                Products: 'ok'
             }
         })
     } catch (error) {
@@ -20,12 +18,12 @@ async function getPosts(req, res) {
     }
 }
 
-async function getPostById(req, res) {
+async function getProductById(req, res) {
     try {
         return res.status(200).json({
             status: 'success',
             data: {
-                posts: 'ok'
+                Products: 'ok'
             }
         })
     } catch (error) {
@@ -36,11 +34,12 @@ async function getPostById(req, res) {
     }
 }
 
-async function createPost(req, res) {
+async function createProduct(req, res) {
     try {
         const schema = {
-            title: 'string|empty:false',
+            product_name: 'string|empty:false',
             description: 'string|empty:false',
+            price: 'number|empty:false',
         }
 
         const validate = v.validate(req.body, schema)
@@ -53,16 +52,17 @@ async function createPost(req, res) {
         }
 
         const data = {
-            title: req.body.title,
+            productName: req.body.product_name,
             description: req.body.description,
+            price: req.body.price,
         }
 
-        const createPost = null // create new post record
+        const createProduct = null // create new post record
 
         return res.status(200).json({
             status: 'success',
             data: {
-                posts: 'ok'
+                Products: 'ok'
             }
         })
     } catch (error) {
@@ -73,11 +73,12 @@ async function createPost(req, res) {
     }
 }
 
-async function updatePost(req, res) {
+async function updateProduct(req, res) {
     try {
         const schema = {
-            title: 'string|empty:false',
+            product_name: 'string|empty:false',
             description: 'string|empty:false',
+            price: 'number|empty:false',
         }
 
         const validate = v.validate(req.body, schema)
@@ -91,26 +92,27 @@ async function updatePost(req, res) {
 
         const id = req.params.id
 
-        const post = true // get post record
+        const product = true // get product record
 
-        if(!post) {
+        if(!product) {
             return res.status(404).json({
                 status: 'error',
-                message: 'post record not found',
+                message: 'product record not found',
             })
         }
 
         const {
-            title,
+            product_name,
             description,
+            price,
         } = req.body
 
-        // update post record
+        // update product record
 
         return res.status(200).json({
             status: 'success',
             data: {
-                posts: 'ok'
+                Products: 'ok'
             }
         })
     } catch (error) {
@@ -121,25 +123,25 @@ async function updatePost(req, res) {
     }
 }
 
-async function softDeletePost(req, res) {
+async function softDeleteProduct(req, res) {
     try {
         const id = req.params.id
 
-        const post = true // get post record
+        const product = true
 
-        if(!post) {
+        if(!product) {
             return res.status(404).json({
                 status: 'error',
-                message: 'post record not found',
+                message: 'product record not found',
             })
         }
 
-        // update post record deleted_at to date now()
+        // update product record deleted_at to date now()
 
         return res.status(200).json({
             status: 'success',
             data: {
-                posts: 'ok'
+                Products: 'ok'
             }
         })
     } catch (error) {
@@ -150,10 +152,10 @@ async function softDeletePost(req, res) {
     }
 }
 
-module.exports = { 
-    getPosts, 
-    getPostById,
-    createPost,
-    updatePost,
-    softDeletePost,
+module.exports = {
+    getProducts, 
+    getProductById,
+    createProduct,
+    updateProduct,
+    softDeleteProduct,
 }
