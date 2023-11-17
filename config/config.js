@@ -1,6 +1,7 @@
 require('dotenv').config()
 
 const {
+    POSTGRE_URL,
     DATABASE_HOST,
     DATABASE_USERNAME,
     DATABASE_PASSWORD,
@@ -9,6 +10,7 @@ const {
 
 module.exports = {
     development: {
+        url: POSTGRE_URL,
         host: DATABASE_HOST,
         username: DATABASE_USERNAME,
         password: DATABASE_PASSWORD,
