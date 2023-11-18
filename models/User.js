@@ -21,18 +21,17 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         createdAt: {
-            field: 'created_at',
             type: DataTypes.DATE,   
             allowNull: false
         },
         updatedAt: {
-            field: 'updated_at',
             type: DataTypes.DATE,
             allowNull: false
         },
     }, {
         tableName: 'users',
-        timestamps: true
+        timestamps: true,
+        underscored: true,
     })
 
     User.associate = function(models) {

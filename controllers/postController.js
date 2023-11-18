@@ -3,7 +3,7 @@ const Validator = require("fastest-validator")
 const v = new Validator()
 
 const Post = require('../models').Post
-
+const User = require('../models').User
 const { getUserId } = require('../middlewares/tokenHandler')
 
 async function getPosts(req, res) {
@@ -11,6 +11,13 @@ async function getPosts(req, res) {
         const posts = await Post.findAll({
             where: { deletedAt: null },
             attributes: ['id', 'title', 'description'],
+            include: [
+                {
+                    model: User,
+                    attributes: ['id', 'name'],
+                    as: 'author'
+                }
+            ],
             order: [['id', 'ASC' ]]
         })
 
@@ -32,6 +39,13 @@ async function getPostById(req, res) {
         const post = await Post.findOne({
             where: { id },
             attributes: ['id', 'title', 'description'],
+            include: [
+                {
+                    model: User,
+                    attributes: ['id', 'name'],
+                    as: 'author'
+                }
+            ]
         })
 
         if(!post) {
@@ -118,6 +132,14 @@ async function updatePost(req, res) {
             })
         }
 
+        const userId = getUserId(req.headers.authorization)
+        if(post.userId !== userId) {
+            return res.status(403).json({
+                status: 'forbidden',
+                message: 'You do not have permission to update this data',
+            })
+        }
+
         const {
             title,
             description,
@@ -154,6 +176,14 @@ async function softDeletePost(req, res) {
             return res.status(404).json({
                 status: 'error',
                 message: 'Data not found',
+            })
+        }
+
+        const userId = getUserId(req.headers.authorization)
+        if(post.userId !== userId) {
+            return res.status(403).json({
+                status: 'forbidden',
+                message: 'You do not have permission to delete this data',
             })
         }
 

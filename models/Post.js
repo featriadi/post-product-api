@@ -7,7 +7,6 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         userId: {
-            field: 'user_id',
             type: DataTypes.INTEGER,
             allowNull: false
         },
@@ -20,27 +19,25 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
         createdAt: {
-            field: 'created_at',
             type: DataTypes.DATE,
             allowNull: false
         },
         updatedAt: {
-            field: 'updated_at',
             type: DataTypes.DATE,
             allowNull: false
         },
         deletedAt: {
-            field: 'deleted_at',
             type: DataTypes.DATE,
             allowNull: true
         },
     }, {
         tableName: 'posts',
-        timestamps: true
+        timestamps: true,
+        underscored: true,
     })
 
     Post.associate = function(models) {
-        Post.belongsTo(models.User, { foreignKey: 'user_id' })
+        Post.belongsTo(models.User, { foreignKey: 'user_id', as: 'author' })
     }
 
     return Post

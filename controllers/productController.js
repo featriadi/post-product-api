@@ -3,12 +3,21 @@ const Validator = require("fastest-validator")
 const v = new Validator()
 
 const Product = require('../models').Product
+const User = require('../models').User
+const { getUserId } = require('../middlewares/tokenHandler')
 
 async function getProducts(req, res) {
     try {
         const products = await Product.findAll({
             where: { deletedAt: null },
             attributes: ['id', 'product_name', 'description', 'price'],
+            include: [
+                {
+                    model: User,
+                    attributes: ['id', 'name'],
+                    as: 'seller'
+                }
+            ],
             order: [['id', 'ASC' ]]
         })
 
@@ -30,6 +39,13 @@ async function getProductById(req, res) {
         const product = await Product.findOne({
             where: { id },
             attributes: ['id', 'product_name', 'description', 'price'],
+            include: [
+                {
+                    model: User,
+                    attributes: ['id', 'name'],
+                    as: 'seller'
+                }
+            ]
         })
 
         if(!product) {
@@ -69,6 +85,7 @@ async function createProduct(req, res) {
         }
 
         const data = {
+            userId: getUserId(req.headers.authorization),
             productName: req.body.product_name,
             description: req.body.description,
             price: req.body.price,
@@ -119,6 +136,14 @@ async function updateProduct(req, res) {
             })
         }
 
+        const userId = getUserId(req.headers.authorization)
+        if(product.userId !== userId) {
+            return res.status(403).json({
+                status: 'forbidden',
+                message: 'You do not have permission to update this data',
+            })
+        }
+
         const {
             product_name,
             description,
@@ -158,6 +183,14 @@ async function softDeleteProduct(req, res) {
             return res.status(404).json({
                 status: 'error',
                 message: 'Data not found',
+            })
+        }
+
+        const userId = getUserId(req.headers.authorization)
+        if(product.userId !== userId) {
+            return res.status(403).json({
+                status: 'forbidden',
+                message: 'You do not have permission to update this data',
             })
         }
 
