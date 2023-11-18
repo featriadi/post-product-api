@@ -4,7 +4,9 @@ const bcrypt = require('bcrypt')
 const Validator = require("fastest-validator")
 const v = new Validator()
 
-const User = require('../models').User
+const Sequelize = require('sequelize')
+const sequelize = require('../config/connection')
+const User = require('../models/User')(sequelize, Sequelize.DataTypes)
 
 async function register(req, res) {
     try {
