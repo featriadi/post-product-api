@@ -1,20 +1,12 @@
 require('dotenv').config()
 
-const {
-    POSTGRE_URL,
-    DATABASE_HOST,
-    DATABASE_USERNAME,
-    DATABASE_PASSWORD,
-    DATABASE_NAME
-} = process.env
-
 module.exports = {
     development: {
-        url: POSTGRE_URL,
-        host: DATABASE_HOST,
-        username: DATABASE_USERNAME,
-        password: DATABASE_PASSWORD,
-        database: DATABASE_NAME,
+        url: process.env.POSTGRE_URL,
+        host: process.env.DATABASE_HOST,
+        username: process.env.DATABASE_USERNAME,
+        password: process.env.DATABASE_PASSWORD,
+        database: process.env.DATABASE_NAME,
         dialect: 'postgres',
         ssl: true,
         logging: false,
