@@ -10,6 +10,7 @@ const {
 
 module.exports = {
     development: {
+        use_env_variable: false,
         url: POSTGRE_URL,
         host: DATABASE_HOST,
         username: DATABASE_USERNAME,
