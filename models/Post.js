@@ -6,6 +6,11 @@ module.exports = (sequelize, DataTypes) => {
             primaryKey: true,
             allowNull: false
         },
+        userId: {
+            field: 'user_id',
+            type: DataTypes.INTEGER,
+            allowNull: false
+        },
         title: {
             type: DataTypes.STRING,
             allowNull: false
@@ -30,8 +35,13 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: true
         },
     }, {
-        tableName: 'posts'
+        tableName: 'posts',
+        timestamps: true
     })
+
+    Post.associate = function(models) {
+        Post.belongsTo(models.User, { foreignKey: 'user_id' })
+    }
 
     return Post
 }

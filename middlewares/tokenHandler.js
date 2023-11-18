@@ -32,4 +32,18 @@ async function verifyToken(req, res, next) {
     })
 }
 
-module.exports = verifyToken
+function getUserId(header) {
+    const token = header.split(' ')
+    let userId
+
+    jwt.verify(token[1], process.env.JWT_SECRET_ACCESS_TOKEN, function(err, decoded) {
+        userId = decoded.data.id
+    })
+
+    return userId
+}
+
+module.exports = {
+    verifyToken,
+    getUserId
+}

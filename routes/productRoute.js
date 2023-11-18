@@ -1,5 +1,5 @@
 const { Router } = require('express')
-const verifyToken = require('../middlewares/verifyToken')
+const { verifyToken } = require('../middlewares/tokenHandler')
 const {
     getProducts,
     getProductById,

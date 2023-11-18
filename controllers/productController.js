@@ -2,9 +2,7 @@ require('dotenv').config()
 const Validator = require("fastest-validator")
 const v = new Validator()
 
-const Sequelize = require('sequelize')
-const sequelize = require('../config/connection')
-const Product = require('../models/Product')(sequelize, Sequelize.DataTypes)
+const Product = require('../models').Product
 
 async function getProducts(req, res) {
     try {

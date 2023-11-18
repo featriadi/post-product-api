@@ -10,6 +10,11 @@ module.exports = {
         primaryKey: true,
         allowNull: false
       },
+      userId: {
+        field: 'user_id',
+        type: Sequelize.DataTypes.INTEGER,
+        allowNull: false
+      },
       productName: {
         field: 'product_name',
         type: Sequelize.DataTypes.STRING,
@@ -38,6 +43,16 @@ module.exports = {
         type: Sequelize.DataTypes.DATE,
         allowNull: true
       },
+    })
+
+    await queryInterface.addConstraint('products', {
+      type: 'foreign key',
+      name: 'PRODUCTS_USER_ID',
+      fields: ['user_id'],
+      references: {
+        table: 'users',
+        field: 'id'
+      }
     })
   },
 

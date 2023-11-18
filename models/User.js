@@ -31,8 +31,14 @@ module.exports = (sequelize, DataTypes) => {
             allowNull: false
         },
     }, {
-        tableName: 'users'
+        tableName: 'users',
+        timestamps: true
     })
+
+    User.associate = function(models) {
+        User.hasMany(models.Post, { as: 'posts' }),
+        User.hasMany(models.Product, { as: 'products' })
+    }
 
     return User
 }

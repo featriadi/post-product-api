@@ -2,9 +2,9 @@ require('dotenv').config()
 const Validator = require("fastest-validator")
 const v = new Validator()
 
-const Sequelize = require('sequelize')
-const sequelize = require('../config/connection')
-const Post = require('../models/Post')(sequelize, Sequelize.DataTypes)
+const Post = require('../models').Post
+
+const { getUserId } = require('../middlewares/tokenHandler')
 
 async function getPosts(req, res) {
     try {
@@ -70,6 +70,7 @@ async function createPost(req, res) {
         }
 
         const data = {
+            userId: getUserId(req.headers.authorization),
             title: req.body.title,
             description: req.body.description,
         }
