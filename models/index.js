@@ -10,11 +10,13 @@ const config = require(__dirname + '/../config/config.js')[env];
 const db = {};
 
 let sequelize;
-if (config.use_env_variable || config.use_env_variable !== 'undefined') {
-  sequelize = new Sequelize(process.env[config.use_env_variable], config);
-} else {
-  sequelize = new Sequelize(config.url, config);
-}
+sequelize = new Sequelize(config.url, config);
+
+// if (config.use_env_variable || config.use_env_variable !== 'undefined') {
+//   sequelize = new Sequelize(process.env[config.use_env_variable], config);
+// } else {
+//   sequelize = new Sequelize(config.url, config);
+// }
 
 fs
   .readdirSync(__dirname)
